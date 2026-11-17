@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>外部威胁态势 · 安全运营大屏</title>
+  <script type="module" crossorigin src="/soc-threat-bigscreen-demo/assets/index-wSbcTxnO.js"></script>
+  <link rel="modulepreload" crossorigin href="/soc-threat-bigscreen-demo/assets/vendor-vue-lYpqCFqW.js">
+  <link rel="modulepreload" crossorigin href="/soc-threat-bigscreen-demo/assets/vendor-three-CWaxamb1.js">
+  <link rel="stylesheet" crossorigin href="/soc-threat-bigscreen-demo/assets/index-CJKXxiu4.css">
+</head>
+<body>
+<div id="stage">
+  <h1 class="sr-only">安全运营 · 外部威胁态势</h1>
+  <canvas id="bgCanvas"></canvas>
+  <div class="bg-grid"></div>
+  <div class="bg-glow glow-a"></div>
+  <div class="bg-glow glow-b"></div>
+  <div class="bg-glow glow-c"></div>
+  <div class="bg-glow glow-d"></div>
+  <div class="scanline"></div>
+  <div class="frame"><i></i><i></i><i></i><i></i></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 2l12 6v9c0 7.5-5 11.5-12 13C9 28.5 4 24.5 4 17V8l12-6z" stroke="currentColor" stroke-width="1.2"/><path d="M16 8l6 3v5c0 4-2.6 6-6 7-3.4-1-6-3-6-7v-5l6-3z" fill="currentColor" opacity=".12"/><path d="M12.5 16.5l2.5 2.5 4.8-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-main">安全运营 · 外部威胁监测</div>
+      </div>
+      <div class="live-chip"><i></i><span>实时监测</span></div>
+    </div>
+
+    <div class="title-wrap">
+      <div class="title-block">
+        <img class="title-svg" src="/soc-threat-bigscreen-demo/assets/title-external-threat-BLMlM6cu.svg" alt="外部威胁态势" />
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <div class="range-seg" id="rangeSeg">
+        <button class="range-btn active" data-range="30">近30天</button>
+        <button class="range-btn" data-range="90">近90天</button>
+      </div>
+      <div class="sync-state"><i class="pulse"></i><span id="updatedText">数据更新于 13:12:36</span></div>
+      <button class="icon-btn" id="refreshBtn" title="刷新数据" aria-label="刷新数据">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M16.2 8.2A6.4 6.4 0 104 13.8M16.2 8.2V3.8M16.2 8.2h-4.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="icon-btn" id="fullBtn" title="全屏" aria-label="全屏">
+        <svg viewBox="0 0 20 20" fill="none"><path d="M7.5 3.5H3.5v4M12.5 3.5h4v4M7.5 16.5H3.5v-4M12.5 16.5h4v-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+      <button class="back-btn" id="backBtn"><svg viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>返回</button>
+    </div>
+  </header>
+
+  <section class="kpi-strip" id="kpiStrip">
+
+    <div class="kpi" data-kpi="total">
+      <div class="kpi-head"><span class="kpi-label">告警总数</span></div>
+      <div class="kpi-value"><b class="num" id="kpiTotal">101</b><em>条</em></div>
+      <div class="kpi-foot"><span class="delta up" id="deltaTotal">↑ 12.4%</span><span class="muted">较上期</span></div>
+    </div>
+
+    <div class="kpi danger" data-kpi="unclosed">
+      <div class="kpi-head"><span class="kpi-label">未闭环</span></div>
+      <div class="kpi-value"><b class="num" id="kpiUnclosed">58</b><em>条</em></div>
+      <div class="kpi-foot"><span class="delta up" id="deltaUnclosed">↑ 8.2%</span><span class="muted">待处置 / 处置中</span></div>
+    </div>
+
+    <div class="kpi success" data-kpi="handled">
+      <div class="kpi-head"><span class="kpi-label">已处置</span></div>
+      <div class="kpi-value"><b class="num" id="kpiHandled">43</b><em>条</em></div>
+      <div class="kpi-foot"><span class="delta down" id="deltaHandled">↓ 3.1%</span><span class="muted">较上期</span></div>
+    </div>
+
+    <div class="kpi rate" data-kpi="rate">
+      <div class="kpi-head"><span class="kpi-label">处置率</span></div>
+      <div class="kpi-value"><b class="num" id="kpiRate">42.6</b><em>%</em></div>
+      <div class="rate-track"><i id="rateFill" style="width:42.6%"></i></div>
+      <div class="kpi-foot"><span class="muted">目标 85%</span><span class="goal">未达标</span></div>
+    </div>
+
+    <div class="kpi" data-kpi="ips">
+      <div class="kpi-head"><span class="kpi-label">攻击源</span></div>
+      <div class="kpi-value"><b class="num" id="kpiIps">30</b><em>个</em></div>
+      <div class="kpi-foot"><span class="muted" id="ipFoot">境外 22 · 未解析 8</span></div>
+    </div>
+
+    <div class="kpi" data-kpi="assets">
+      <div class="kpi-head"><span class="kpi-label">受攻击资产</span></div>
+      <div class="kpi-value"><b class="num" id="kpiAssets">10</b><em>个</em></div>
+      <div class="kpi-foot"><span class="muted">核心 3 · 重要 4</span></div>
+    </div>
+  </section>
+
+  <main class="main">
+    <div class="col col-left">
+      <section class="panel panel-top10">
+        <div class="panel-head">
+          <div class="panel-title" role="heading" aria-level="2" aria-label="攻击源前十"><img class="panel-title-svg" src="/soc-threat-bigscreen-demo/assets/panel-sources-ClEf3iyc.svg" alt="攻击源前十" /></div>
+          <div class="panel-meta">
+            <span class="chip" id="sourceChip">30 个来源</span>
+            <span class="chip ghost" id="unresolvedChip">未解析 8</span>
+          </div>
+        </div>
+        <div class="ip-list" id="ipList"></div>
+        <div class="panel-foot">
+          <span id="unresolvedFoot">未解析来源 8 个 · 合计 18 次</span><span id="unresolvedHits" hidden></span><span id="legendUnknown" hidden></span>
+          <button class="link-btn" id="ipAllBtn">查看全部 <span>›</span></button>
+        </div>
+      </section>
+
+      <section class="panel panel-types" aria-hidden="true">
+        <div class="panel-head"><div class="panel-title"><i class="bar teal"></i><h2>攻击告警类型前五</h2></div></div>
+        <div class="type-list" id="typeList"></div>
+      </section>
+
+      <section class="panel panel-honeypot" aria-hidden="true">
+        <div class="panel-head"><div class="panel-title"><i class="bar red"></i><h2>蜜罐捕获告警</h2></div></div>
+        <div class="hp-list" id="hpList"></div>
+      </section>
+    </div>
+
+    <div class="col col-center">
+      <section class="panel panel-map">
+        <div class="map-body">
+          <div class="map-canvas" id="mapChart"></div>
+          <canvas id="mapAttackCanvas" aria-hidden="true"></canvas>
+          <div class="south-sea-inset" id="southSeaInset" aria-label="南海诸岛">
+            <canvas id="southSeaCanvas" width="180" height="220"></canvas>
+            <span>南海诸岛</span>
+          </div>
+          <div class="attack-popup" id="attackPopup" hidden>
+            <button class="attack-popup-close" id="attackPopupClose" type="button" aria-label="关闭">×</button>
+            <div class="attack-popup-kicker" id="attackPopupKicker">攻击链路</div>
+            <div class="attack-popup-title" id="attackPopupTitle"></div>
+            <div class="attack-popup-body" id="attackPopupBody"></div>
+          </div>
+          <div id="three-map-root" aria-label="三维全息地球与玻璃地图"></div>
+          <div class="map-mode-switch" role="group" aria-label="地图模式">
+            <button type="button" class="map-mode-btn is-active" data-map-mode="3d">3D</button>
+            <button type="button" class="map-mode-btn" data-map-mode="2d">2D</button>
+          </div>
+          <div class="map-legend" aria-label="地图图例">
+            <span><i class="source"></i>攻击来源</span>
+            <span><i class="target"></i>受攻击城市</span>
+            <span><i class="route"></i>攻击路径</span>
+          </div>
+          <button class="map-2d-back" id="map2dBack" type="button">‹ 返回全球</button>
+          <div class="china-attack-list" id="chinaAttackList" aria-label="重点受攻击省市">
+            <div class="china-attack-list-head"><b>重点受攻击省市</b><span>TOP 5</span></div>
+            <div class="china-attack-list-body" id="chinaAttackRows"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel panel-trend">
+        <div class="panel-head">
+          <div class="panel-title" role="heading" aria-level="2" aria-label="攻击告警变化"><img class="panel-title-svg" src="/soc-threat-bigscreen-demo/assets/panel-trend-g48FsKDF.svg" alt="攻击告警变化" /></div>
+          <div class="panel-meta trend-meta">
+            <span class="legend-dot handled"><i></i>已处置 <b id="trendHandled">43</b></span>
+            <span class="legend-dot open"><i></i>未闭环 <b id="trendOpen">58</b></span>
+            <span class="chip ghost" id="peakChip">峰值 50 · 10-15</span>
+          </div>
+        </div>
+        <div class="trend-canvas" id="trendChart"></div>
+      </section>
+    </div>
+
+    <div class="col col-right">
+      <section class="panel panel-assets">
+        <div class="panel-head">
+          <div class="panel-title" role="heading" aria-level="2" aria-label="受攻击资产前五"><img class="panel-title-svg" src="/soc-threat-bigscreen-demo/assets/panel-assets-DsZEic2h.svg" alt="受攻击资产前五" /></div>
+          <div class="panel-meta"><span class="chip" id="assetChip">10 个资产</span></div>
+        </div>
+        <div class="asset-list" id="assetList"></div>
+        <div class="panel-foot">
+          <span>按告警数排序 · 核心资产优先</span>
+          <button class="link-btn" id="assetAllBtn">资产台账 <span>›</span></button>
+        </div>
+      </section>
+
+      <section class="panel panel-honeypot" aria-hidden="true">
+        <div class="panel-head"><div class="panel-title"><i class="bar red"></i><h2>蜜罐捕获告警</h2></div></div>
+        <div class="hp-list" id="hpList2"></div>
+      </section>
+    </div>
+  </main>
+<div class="scrim" id="scrim"></div>
+  <div id="mapTip" hidden>
+    <span id="tipPill"></span><span id="tipUnknown"></span><span id="tipUnknownAlerts"></span>
+    <span id="tipKicker"></span><span id="tipTitle"></span><span id="tipSources"></span>
+    <span id="tipAlerts"></span><span id="tipAssets"></span><div id="sourceBars"></div><button id="tipAction" type="button"></button>
+  </div>
+  <div id="mapBreadcrumb" hidden></div>
+  <button id="mapBack" type="button" hidden></button>
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <div class="drawer-kicker" id="drawerKicker">攻击源详情</div>
+        <div class="drawer-title" id="drawerTitle">203.0.113.101</div>
+      </div>
+      <button class="drawer-close" id="drawerClose" aria-label="关闭">×</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-badges" id="drawerBadges"></div>
+      <div class="drawer-stats" id="drawerStats"></div>
+      <div class="drawer-section">
+        <div class="drawer-section-head"><span>关联告警</span><span class="muted">最近 5 条</span></div>
+        <div class="drawer-table" id="drawerTable"></div>
+      </div>
+      <div class="drawer-section advice-block">
+        <div class="drawer-section-head"><span>处置建议</span><span class="muted">基于当前告警</span></div>
+        <ul class="advice-list">
+          <li>立即封禁攻击源地址，观察 10 分钟内是否复现</li>
+          <li>核查目标资产的暴露端口与访问日志</li>
+          <li>同步网站防护规则，将该地址段加入临时黑名单</li>
+        </ul>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-head"><span>最近24小时攻击趋势</span><span class="muted">峰值 12 次</span></div>
+        <div class="mini-chart">
+          <div class="mini-bars">
+            <i style="--h:16%"></i><i style="--h:22%"></i><i style="--h:18%"></i><i style="--h:30%"></i><i style="--h:42%"></i><i style="--h:35%"></i>
+            <i style="--h:52%"></i><i style="--h:64%"></i><i style="--h:58%"></i><i style="--h:72%"></i><i style="--h:88%"></i><i style="--h:100%"></i>
+            <i style="--h:82%"></i><i style="--h:68%"></i><i style="--h:54%"></i><i style="--h:46%"></i><i style="--h:38%"></i><i style="--h:30%"></i>
+            <i style="--h:24%"></i><i style="--h:28%"></i><i style="--h:20%"></i><i style="--h:16%"></i><i style="--h:12%"></i><i style="--h:8%"></i>
+          </div>
+          <div class="mini-axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <div class="drawer-section-head"><span>同源地址</span><span class="muted">最近活跃</span></div>
+        <div class="peer-list">
+          <div><b>203.0.113.101</b><span>23 次</span><em>当前</em></div>
+          <div><b>203.0.113.102</b><span>10 次</span><em>关联</em></div>
+          <div><b>198.51.100.99</b><span>6 次</span><em>关联</em></div>
+        </div>
+      </div>
+      <div class="drawer-note"><i></i>数据来自外部威胁监测 · 仅展示已解析来源</div>
+    </div>
+    <div class="drawer-actions">
+      <button class="btn ghost" id="drawerCancel">关闭</button>
+      <button class="btn primary" id="drawerAction">查看全部告警 <span>→</span></button>
+    </div>
+  </aside>
+</div>
+
+<script src="assets/china.geo.js"></script>
+<script src="assets/world.geo.js"></script>
+<script src="vendor/echarts.min.js"></script>
+<script>window.__THREE_MAP__ = true;</script>
+<script src="app.js"></script>
+<script src="map-mode.js"></script>
+</body>
+</html>
